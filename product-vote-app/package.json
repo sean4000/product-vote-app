@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://sean4000.github.io/product-vote-app/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

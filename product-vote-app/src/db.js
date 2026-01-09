@@ -30,38 +30,51 @@ export const initData = async (defaultData) => {
     const transaction = db.transaction([STORE_NAME], "readwrite");
     const store = transaction.objectStore(STORE_NAME);
 
-    const countRequest = store.count();
     let isDataEmpty = false;
+    let shouldReset = false;
 
-    countRequest.onsuccess = () => {
-      const count = countRequest.result;
-      // 检查数据完整性：如果为空，或者数量少于默认数据数量，则视为需要初始化
-      if (count === 0 || count < defaultData.length) {
-        console.log(
-          `IndexedDB status: ${
-            count === 0 ? "Empty" : "Incomplete (found " + count + " items)"
-          }. Initializing/Fixing data...`
-        );
+    const getAllRequest = store.getAll();
+    getAllRequest.onsuccess = () => {
+      const existing = Array.isArray(getAllRequest.result)
+        ? getAllRequest.result
+        : [];
+
+      const existingIds = existing
+        .map((item) => item?.id)
+        .filter((id) => typeof id === "number")
+        .sort((a, b) => a - b);
+      const defaultIds = defaultData
+        .map((item) => item?.id)
+        .filter((id) => typeof id === "number")
+        .sort((a, b) => a - b);
+
+      if (existing.length === 0) {
         isDataEmpty = true;
+        shouldReset = true;
+      } else if (existing.length !== defaultData.length) {
+        shouldReset = true;
+      } else if (existingIds.join(",") !== defaultIds.join(",")) {
+        shouldReset = true;
+      }
 
-        // 如果是数据不完整，建议先清空（虽然 put 会覆盖，但 clear 更干净）
-        if (count > 0) {
-          store.clear();
-        }
-
+      if (shouldReset) {
+        console.log(
+          `IndexedDB status: Resetting data (found ${existing.length} items, expected ${defaultData.length}).`
+        );
+        store.clear();
         defaultData.forEach((item) => {
-          store.put(item); // 使用 put 确保覆盖或新增
+          store.put(item);
         });
       } else {
         console.log(
-          `IndexedDB has valid data count (${count} items), skipping init.`
+          `IndexedDB has valid data (${existing.length} items), skipping init.`
         );
       }
     };
 
-    countRequest.onerror = () => {
-      console.error("Error checking data count");
-      reject("Error checking data count");
+    getAllRequest.onerror = () => {
+      console.error("Error getting products for init");
+      reject("Error getting products for init");
     };
 
     // 无论是否写入数据，都等待事务完成
@@ -125,6 +138,29 @@ export const updateProduct = async (product) => {
     transaction.onerror = (event) => {
       console.error("Error updating product:", event.target.error);
       reject("Error updating product: " + event.target.error);
+    };
+  });
+};
+
+export const clearAllProducts = async () => {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+
+    request.onsuccess = () => {
+      // Request successful, wait for transaction to complete
+    };
+
+    transaction.oncomplete = () => {
+      console.log("All products cleared from DB.");
+      resolve();
+    };
+
+    transaction.onerror = (event) => {
+      console.error("Error clearing products:", event.target.error);
+      reject("Error clearing products: " + event.target.error);
     };
   });
 };
