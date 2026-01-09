@@ -7,9 +7,9 @@ import {
 } from "./db";
 
 const DEFAULT_PRODUCTS = [
-  { id: 1, name: "产品1", votes: 0 },
-  { id: 2, name: "产品2", votes: 0 },
-  { id: 3, name: "产品3", votes: 0 },
+  { id: 1, name: "产品1", votes: 0, image: "A-product.jpg" },
+  { id: 2, name: "产品2", votes: 0, image: "b-product.jpg" },
+  { id: 3, name: "产品3", votes: 0, image: "c-product.jpg" },
 ];
 
 function App() {
@@ -26,8 +26,13 @@ function App() {
         // 按照 ID 排序，确保展示顺序一致
         if (storedProducts && storedProducts.length > 0) {
           console.log("Loaded products from DB:", storedProducts);
-          storedProducts.sort((a, b) => a.id - b.id);
-          setProducts(storedProducts);
+          // 合并默认数据（主要是图片路径）和存储的数据（票数）
+          const mergedProducts = storedProducts.map((p) => {
+            const def = DEFAULT_PRODUCTS.find((d) => d.id === p.id);
+            return { ...def, ...p };
+          });
+          mergedProducts.sort((a, b) => a.id - b.id);
+          setProducts(mergedProducts);
         } else {
           console.warn("DB returned empty data, falling back to default.");
           // 如果读取失败或者为空，再次尝试初始化（双重保障）
@@ -112,28 +117,28 @@ function App() {
     >
       <div className="absolute inset-0 bg-black/55"></div>
       <div className="relative z-10 min-h-screen">
-        <header className="p-6 flex justify-between items-start">
+        <header className="p-6 flex justify-between items-start h-[150px]">
           {/* LOGO */}
           <div className="text-5xl font-bold tracking-wider text-yellow-100 opacity-90">
             {/* LOGO */}
           </div>
 
           {/* 中间标题 */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 top-8">
+          {/* <div className="absolute left-1/2 transform -translate-x-1/2 top-8">
             <h1 className="text-3xl font-bold tracking-widest drop-shadow-md">
               星钻三重奏
             </h1>
-          </div>
+          </div> */}
 
           {/* 右侧统计 */}
-          <div className="text-right space-y-2">
+          {/* <div className="text-right space-y-2">
             <div className="text-lg">
               签到人数： <span className="font-bold text-2xl">2</span> 人
             </div>
             <div className="text-xl font-medium">
               倒计时： {formatTime(timeLeft)}
             </div>
-          </div>
+          </div> */}
         </header>
 
         <main className="flex justify-center items-end h-[60vh] gap-16 px-10 pb-10">
@@ -144,7 +149,7 @@ function App() {
               onClick={() => handleVote(product.id)}
             >
               {/* 票数 */}
-              <div className="mb-2 text-xl font-bold">{product.votes}票</div>
+              {/* <div className="mb-2 text-xl font-bold">{product.votes}票</div> */}
 
               {/* 柱状图 */}
               <div className="w-16 bg-black/20 rounded-full relative overflow-hidden h-64 border-2 border-white/10 shadow-inner">
@@ -162,11 +167,19 @@ function App() {
                 </div>
               </div>
 
-              {/* 产品图标 (模拟图片) */}
-              <div className="mt-4 w-20 h-16 bg-white rounded-lg shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-transform">
-                <div className="w-12 h-10 bg-red-100 rounded-md flex items-center justify-center">
-                  <span className="text-red-500 text-xs">IMG</span>
-                </div>
+              {/* 产品图标 */}
+              <div className="mt-4 w-20 h-16 bg-white rounded-lg shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-transform overflow-hidden">
+                {product.image ? (
+                  <img
+                    src={`${import.meta.env.BASE_URL}${product.image}`}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-10 bg-red-100 rounded-md flex items-center justify-center">
+                    <span className="text-red-500 text-xs">IMG</span>
+                  </div>
+                )}
               </div>
 
               {/* 产品名称 */}
@@ -175,13 +188,13 @@ function App() {
           ))}
         </main>
 
-        <div className="absolute bottom-10 left-10 opacity-60 transform -rotate-12 border-4 border-white rounded-full w-24 h-24 flex flex-col items-center justify-center">
+        {/* <div className="absolute bottom-10 left-10 opacity-60 transform -rotate-12 border-4 border-white rounded-full w-24 h-24 flex flex-col items-center justify-center">
           <div className="text-xs border-b border-white pb-1 mb-1 w-16 text-center">
             ★★★
           </div>
           <div className="font-bold text-lg">试用版</div>
           <div className="text-[10px] mt-1">仅限20人使用</div>
-        </div>
+        </div> */}
 
         <div className="absolute bottom-8 right-10 flex gap-4">
           <button
