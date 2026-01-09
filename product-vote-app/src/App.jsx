@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   initData,
   getAllProducts,
@@ -203,6 +204,11 @@ function App() {
           >
             🧹 清除投票
           </button>
+          <Link to="/admin">
+            <button className="px-4 py-1.5 bg-blue-500/50 rounded-full border border-white/30 backdrop-blur-sm text-sm hover:bg-blue-600/60 transition">
+              📊 数据导出
+            </button>
+          </Link>
           <button className="px-4 py-1.5 bg-black/30 rounded-full border border-white/30 backdrop-blur-sm text-sm hover:bg-black/40 transition">
             📊 排行榜模式
           </button>
